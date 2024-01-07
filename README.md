@@ -116,4 +116,3 @@ PORT=3306
 USER=golang
 PASS=d3f1n3dP4ssw0rd!
 ```
-

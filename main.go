@@ -25,6 +25,7 @@ func init() {
 }
 
 func main() {
+
 	host := config.Host
 	portaApi := config.Porta
 
