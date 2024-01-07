@@ -1,3 +1,4 @@
+-- THIS FILE IS A COPY OF ../sql/sql.sql FILE
 -- CREATE DATABASE IF NOT EXISTS devbook;
 -- USE devbook;
 

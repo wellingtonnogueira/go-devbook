@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 	"github.com/joho/godotenv"
 )
 
@@ -20,6 +21,9 @@ var (
 
 	// SecretKey é a chave que vai ser usado para assinar o token
 	SecretKey []byte
+
+	// RunInit é a chave (booleana) para executar ou não o init no arquivo main.go
+	RunInit bool
 )
 
 // Carregar vai inicializar as variáveis de ambiente
@@ -45,4 +49,7 @@ func Carregar() {
 	Host = os.Getenv("API_HOST")
 
 	SecretKey = []byte(os.Getenv("SECRET_KEY"))
+
+	runInitStr := strings.ToLower(os.Getenv("RUN_INIT"))
+	RunInit = runInitStr == "true"
 }

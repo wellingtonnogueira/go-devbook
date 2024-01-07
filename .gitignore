@@ -22,3 +22,4 @@ go.work
 
 # Files do not track on project
 api
+mysql/db_data/**
