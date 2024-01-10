@@ -108,15 +108,15 @@ func (repositorio Publicacoes) BuscarPorId(publicacaoId uint64) (modelos.Publica
 }
 
 // Atualizar dados de um usuário no banco de dados
-func (repositorio Publicacoes) Atualizar(usuarioId uint64, publicacao modelos.Usuario) error {
+func (repositorio Publicacoes) Atualizar(publicacaoId uint64, publicacao modelos.Publicacao) error {
 
-	statement, erro := repositorio.db.Prepare(`update usuarios set nome=?, nick=?, email=? where id=?`)
+	statement, erro := repositorio.db.Prepare(`update publicacoes set titulo=?, conteudo=? where id=?`)
 	if erro != nil {
 		return erro
 	}
 	defer statement.Close()
 
-	if _, erro := statement.Exec(publicacao.Nome, publicacao.Nick, publicacao.Email, usuarioId); erro != nil {
+	if _, erro := statement.Exec(publicacao.Titulo, publicacao.Conteudo, publicacaoId); erro != nil {
 		return erro
 	}
 
@@ -124,14 +124,85 @@ func (repositorio Publicacoes) Atualizar(usuarioId uint64, publicacao modelos.Us
 }
 
 // RemoverUsuario remove usuário da tabela
-func (repositorio Publicacoes) RemoverUsuario(usuarioId uint64) error {
-	statement, erro := repositorio.db.Prepare(`delete from usuarios where id=?`)
+func (repositorio Publicacoes) RemoverPublicacao(publicacaoId uint64) error {
+	statement, erro := repositorio.db.Prepare(`delete from publicacoes where id=?`)
 	if erro != nil {
 		return erro
 	}
 	defer statement.Close()
 
-	if _, erro := statement.Exec(usuarioId); erro != nil {
+	if _, erro := statement.Exec(publicacaoId); erro != nil {
+		return erro
+	}
+
+	return nil
+}
+
+// BuscarPorUsuario busca todas as publicações de um usuário específico
+func (repositorio Publicacoes) BuscarPorUsuario(usuarioId uint64) ([]modelos.Publicacao, error) {
+	linhas, erro := repositorio.db.Query(
+		`select p.*, u.nick from publicacoes p 
+		inner join usuarios u on u.id = p.autor_id 
+		where u.id = ? order by p.id desc`, usuarioId, 
+	)
+	if erro != nil {
+		return nil, erro
+	}
+	defer linhas.Close()
+
+	publicacoes := make([]modelos.Publicacao, 0)
+
+	for linhas.Next() {
+		var publicacao modelos.Publicacao
+
+		if erro = linhas.Scan(
+			&publicacao.ID,
+			&publicacao.Titulo,
+			&publicacao.Conteudo,
+			&publicacao.AuthorId,
+			&publicacao.Curtidas,
+			&publicacao.CriadaEm,
+			&publicacao.AuthorNick,
+		); erro != nil {
+			return nil, erro
+		}
+
+		publicacoes = append(publicacoes, publicacao)
+	}
+
+	return publicacoes, nil
+}
+
+// Curtir incrementa a curtida em um
+func (repositorio Publicacoes) Curtir(publicacaoId uint64) error {
+	statement, erro := repositorio.db.Prepare(`update publicacoes set curtidas=curtidas + 1 where id=?`)
+	if erro != nil {
+		return erro
+	}
+	defer statement.Close()
+
+	if _, erro := statement.Exec(publicacaoId); erro != nil {
+		return erro
+	}
+
+	return nil
+}
+
+// Descurtir incrementa a curtida em um
+func (repositorio Publicacoes) Descurtir(publicacaoId uint64) error {
+	statement, erro := repositorio.db.Prepare(
+		`update publicacoes set curtidas=
+			case when curtidas > 0 
+				then curtidas - 1
+				else curtidas end
+			where id=?`,
+	)
+	if erro != nil {
+		return erro
+	}
+	defer statement.Close()
+
+	if _, erro := statement.Exec(publicacaoId); erro != nil {
 		return erro
 	}
 
